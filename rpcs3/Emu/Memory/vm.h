@@ -42,6 +42,7 @@ namespace vm
 	{
 		named_thread* owner;
 		u32 addr;
+		bool inserted = false;
 		u64 stamp;
 		const void* data;
 		static const u32 size = 128; // Always 128 currently
