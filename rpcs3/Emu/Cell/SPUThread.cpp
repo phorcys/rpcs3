@@ -644,6 +644,11 @@ void SPUThread::process_mfc_cmd()
 	{
 	case MFC_GETLLAR_CMD:
 	{
+		if (mfc_queue.size() > 15) // lock-line commands requares an empty slot in the queue, even though they execute immediately
+		{
+			return;
+		}
+
 		auto& data = vm::ps3::_ref<decltype(rdata)>(ch_mfc_cmd.eal);
 
 		const u32 _addr = ch_mfc_cmd.eal;
@@ -718,6 +723,11 @@ void SPUThread::process_mfc_cmd()
 	case MFC_PUTLLC_CMD:
 	{
 		// Store conditionally
+		if (mfc_queue.size() > 15) 
+		{
+			return;
+		}
+
 		auto& data = vm::ps3::_ref<decltype(rdata)>(ch_mfc_cmd.eal);
 		const auto to_write = _ref<decltype(rdata)>(ch_mfc_cmd.lsa & 0x3ffff);
 
@@ -778,6 +788,11 @@ void SPUThread::process_mfc_cmd()
 	}
 	case MFC_PUTLLUC_CMD:
 	{
+		if (mfc_queue.size() > 15) 
+		{
+			return;
+		}
+
 		if (raddr && ch_mfc_cmd.eal == raddr)
 		{
 			ch_event_stat |= SPU_EVENT_LR;
