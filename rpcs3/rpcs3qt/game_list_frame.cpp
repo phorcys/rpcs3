@@ -423,8 +423,11 @@ void game_list_frame::Refresh(const bool fromDrive, const bool scrollAfter)
 			path_list.back().resize(path_list.back().find_last_not_of('/') + 1);
 		}
 
-		// std::set is used to remove duplicates from the list
-		for (const auto& dir : std::set<std::string>(std::make_move_iterator(path_list.begin()), std::make_move_iterator(path_list.end()))) { try
+
+		// Used to remove duplications from the list (serial -> set of cats)
+		std::map<std::string, std::set<std::string>> serial_cat;
+
+		for (const auto& dir : path_list) { try
 		{
 			const std::string sfb = dir + "/PS3_DISC.SFB";
 			const std::string sfo = dir + (fs::is_file(sfb) ? "/PS3_GAME/PARAM.SFO" : "/PARAM.SFO");
@@ -447,6 +450,12 @@ void game_list_frame::Refresh(const bool fromDrive, const bool scrollAfter)
 			game.parental_lvl = psf::get_integer(psf, "PARENTAL_LEVEL");
 			game.resolution   = psf::get_integer(psf, "RESOLUTION");
 			game.sound_format = psf::get_integer(psf, "SOUND_FORMAT");
+
+			// Detect duplication
+			if (!serial_cat[game.serial].emplace(game.category).second)
+			{
+				continue;
+			}
 
 			bool bootable = false;
 			auto cat = category::cat_boot.find(game.category);
@@ -525,7 +534,7 @@ void game_list_frame::Refresh(const bool fromDrive, const bool scrollAfter)
 		}
 		else
 		{
-			m_gameList->verticalScrollBar()->setValue(std::min(m_gameList->verticalScrollBar()->maximum(), scroll_position));
+			m_gameList->verticalScrollBar()->setValue(scroll_position);
 		}
 	}
 	else
@@ -543,15 +552,7 @@ void game_list_frame::Refresh(const bool fromDrive, const bool scrollAfter)
 		connect(m_xgrid, &QTableWidget::customContextMenuRequested, this, &game_list_frame::ShowContextMenu);
 		m_Central_Widget->addWidget(m_xgrid);
 		m_Central_Widget->setCurrentWidget(m_xgrid);
-
-		if (scrollAfter)
-		{
-			m_xgrid->scrollTo(m_xgrid->currentIndex());
-		}
-		else
-		{
-			m_xgrid->verticalScrollBar()->setValue(std::min(m_xgrid->verticalScrollBar()->maximum(), scroll_position));
-		}
+		m_xgrid->verticalScrollBar()->setValue(scroll_position);
 	}
 }
 

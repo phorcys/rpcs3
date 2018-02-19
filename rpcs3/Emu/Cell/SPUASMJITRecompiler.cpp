@@ -160,6 +160,14 @@ bool spu_recompiler::compile(spu_function_contents_t* f)
 		//compiler.jnz(end_label);
 	}
 
+	if (utils::has_avx())
+	{
+		compiler.vzeroupper();
+		//compiler.pxor(asmjit::x86::xmm0, asmjit::x86::xmm0);
+		//compiler.vptest(asmjit::x86::ymm0, asmjit::x86::ymm0);
+		//compiler.jnz(end_label);
+	}
+
 	for (const u32 op : f->data)
 	{
 		// Bind label if initialized
@@ -845,16 +853,6 @@ void spu_recompiler::ROTH(spu_opcode_t op) //nf
 		c->vprolvd(vb, vt, vb);
 		c->vpblendw(vt, vb, va, 0xaa);
 		c->vmovdqa(SPU_OFF_128(gpr, op.rt), vt);
-		return;
-	}
-
-	if (utils::has_xop())
-	{
-		const XmmLink& va = XmmGet(op.ra, XmmType::Int);
-		const XmmLink& vb = XmmGet(op.rb, XmmType::Int);
-		const XmmLink& vt = XmmAlloc();
-		c->vprotw(vt, va, vb);
-		c->movdqa(SPU_OFF_128(gpr, op.rt), vt);
 		return;
 	}
 

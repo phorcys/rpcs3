@@ -403,7 +403,7 @@ void SPUThread::cpu_task()
 		(fmt::throw_exception<std::logic_error>("Invalid SPU decoder"), nullptr));
 
 	// LS base address
-	const auto base = vm::ps3::_ptr<const u32>(offset);
+	const auto base = vm::_ptr<const u32>(offset);
 
 	while (true)
 	{
@@ -609,7 +609,7 @@ void SPUThread::process_mfc_cmd()
 			return;
 		}
 
-		auto& data = vm::ps3::_ref<decltype(rdata)>(ch_mfc_cmd.eal);
+		auto& data = vm::_ref<decltype(rdata)>(ch_mfc_cmd.eal);
 
 		const u32 _addr = ch_mfc_cmd.eal;
 		const u64 _time = vm::reservation_acquire(raddr, 128);
@@ -692,7 +692,8 @@ void SPUThread::process_mfc_cmd()
 			return;
 		}
 
-		auto& data = vm::ps3::_ref<decltype(rdata)>(ch_mfc_cmd.eal);
+		auto& data = vm::_ref<decltype(rdata)>(ch_mfc_cmd.eal);
+
 		const auto to_write = _ref<decltype(rdata)>(ch_mfc_cmd.lsa & 0x3ffff);
 
 		bool result = false;
@@ -778,7 +779,7 @@ void SPUThread::process_mfc_cmd()
 			raddr = 0;
 		}
 
-		auto& data = vm::ps3::_ref<decltype(rdata)>(ch_mfc_cmd.eal);
+		auto& data = vm::_ref<decltype(rdata)>(ch_mfc_cmd.eal);
 		const auto to_write = _ref<decltype(rdata)>(ch_mfc_cmd.lsa & 0x3ffff);
 
 		vm::reservation_acquire(ch_mfc_cmd.eal, 128);
@@ -976,7 +977,7 @@ void SPUThread::process_mfc_cmd()
 u32 SPUThread::get_events(bool waiting)
 {
 	// Check reservation status and set SPU_EVENT_LR if lost
-	if (raddr && (vm::reservation_acquire(raddr, sizeof(rdata)) != rtime || rdata != vm::ps3::_ref<decltype(rdata)>(raddr)))
+	if (raddr && (vm::reservation_acquire(raddr, sizeof(rdata)) != rtime || rdata != vm::_ref<decltype(rdata)>(raddr)))
 	{
 		ch_event_stat |= SPU_EVENT_LR;
 		raddr = 0;
@@ -1855,7 +1856,7 @@ bool SPUThread::same_function(const spu_function_contents_t * func, const void *
 {
 	auto size = func->blocks_size.cbegin();
 	auto dst = reinterpret_cast<const u8 *>(addr);
-	auto src = vm::ps3::_ptr<u8>(offset);
+	auto src = vm::_ptr<u8>(offset);
 
 	for (auto block : func->blocks)
 	{
